@@ -29,7 +29,9 @@ app.use('/hehe', (req, res) => {
   // Get the full URL and remove /hehe from the path
   const originalPath = req.path || '/';
   const queryString = req.url.includes('?') ? req.url.split('?')[1] : '';
-  const targetUrl = `${req.protocol}://${req.get('host')}${originalPath}${queryString ? '?' + queryString : ''}`;
+  // Force HTTPS to avoid mixed content issues
+  const protocol = 'https';
+  const targetUrl = `${protocol}://${req.get('host')}${originalPath}${queryString ? '?' + queryString : ''}`;
   
   const html = `
 <!DOCTYPE html>
@@ -98,38 +100,7 @@ app.use('/', createProxyMiddleware({
       });
     }
 
-    // For /hehe route, create a custom page with iframe
-    if (req.url === '/hehe') {
-      const targetUrl = 'https://cloud.mo.google-analytics.worldplus-intl.org/';
-      const html = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iframe View</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-        iframe {
-            width: 100%;
-            height: 100vh;
-            border: none;
-        }
-    </style>
-</head>
-<body>
-    <iframe src="${targetUrl}" allowfullscreen></iframe>
-</body>
-</html>
-`;
-      res.send(html);
-    } else if (req.url === '/cloud-games/clash-royale-cloud-online.html' && 
+    if (req.url === '/cloud-games/clash-royale-cloud-online.html' && 
         proxyRes.headers['content-type']?.includes('text/html')) {
       
       const originalWrite = res.write;
